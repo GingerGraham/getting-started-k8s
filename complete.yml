@@ -1,3 +1,4 @@
+# Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -8,7 +9,7 @@ spec:
   selector:
     matchLabels:
       app: web
-  replicas: 5
+  replicas: 3
   minReadySeconds: 5
   strategy:
     type: RollingUpdate
@@ -27,3 +28,20 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
+
+--- 
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ps-nodeport
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30000
+    protocol: TCP
+  selector:
+    app: web

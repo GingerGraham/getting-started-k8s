@@ -85,14 +85,16 @@ spec:
 # Ingress
 
 # Ingress service but I couldn't get this working on a bare metal deployment - switched to MetalLB and a LoadBalancer service
-# apiVersion: networking.k8s.io/v1
 # kind: Ingress
+# apiVersion: networking.k8s.io/v1
 # metadata:
 #   name: nigelpoulton-web-ingress
 #   namespace: nigelpoulton
 #   annotations:
 #     nginx.ingress.kubernetes.io/rewrite-target: /$1
-#     kubernetes.io/ingress.class: merge
+#     # kubernetes.io/ingress.class: merge
+#     kubernetes.io/ingress.class: alb
+#     alb.ingress.kubernetes.io/scheme: internal
 #     merge.ingress.kubernetes.io/config: ingress
 # spec:
 #   rules:

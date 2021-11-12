@@ -4,6 +4,17 @@ apiVersion: v1
 metadata:
   name: nigelpoulton
 ---
+# Secret
+# apiVersion: v1
+# kind: Secret
+# type: kubernetes.io/tls
+# data:
+#   tls.crt: QwA6AFwAVQBzAGUAcgBzAFwAZwByAHcAYQB0AHQAcwBcAE8AbgBlAEQAcgBpAHYAZQBcAFAAZQByAHMAbwBuAGEAbAAgAFYAYQB1AGwAdABcAFMAUwBMAFwAVwBhAHQAdABzAEYAYQBtAGkAbAB5AC0AMgAwADIAMQBcAFMAVABBAFIAXwB3AGEAdAB0AHMAZgBhAG0AaQBsAHkAXwBvAHIAZwBfAHUAawAuAGMAcgB0AA==
+#   tls.key: QwA6AFwAVQBzAGUAcgBzAFwAZwByAHcAYQB0AHQAcwBcAE8AbgBlAEQAcgBpAHYAZQBcAFAAZQByAHMAbwBuAGEAbAAgAFYAYQB1AGwAdABcAFMAUwBMAFwAVwBhAHQAdABzAEYAYQBtAGkAbAB5AC0AMgAwADIAMQBcAFMAVABBAFIAXwB3AGEAdAB0AHMAZgBhAG0AaQBsAHkAXwBvAHIAZwBfAHUAawBfAGsAZQB5AC4AdAB4AHQA
+# metadata:
+#   name: wattsfamily
+#   namespace: nigelpoulton
+---
 # Deployment
 kind: Deployment
 apiVersion: apps/v1
@@ -16,7 +27,7 @@ spec:
   selector:
     matchLabels:
       app: nigelpoulton-web
-  replicas: 3
+  replicas: 1
   minReadySeconds: 5
   strategy:
     type: RollingUpdate
@@ -43,6 +54,35 @@ spec:
             cpu: "1"
         ports:
         - containerPort: 8080
+      # - name: ssl-proxy
+      #   image: ployst/nginx-ssl-proxy
+      #   # imagePullPolicy: Always
+      #   resources:
+      #     # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+      #     requests:
+      #       memory: "64Mi"
+      #       cpu: "250m"
+      #     limits:
+      #       memory: "512Mi"
+      #       cpu: "1"
+      #   env:
+      #   - name: SERVER_NAME
+      #     value: "nigelpoulton.wattsfamily.org.uk"
+      #   - name: ENABLE_SSL
+      #     value: "true"
+      #   - name: TARGET_SERVICE
+      #     value: "localhost:8080"
+      #   volumeMounts:
+      #     - name: ssl-keys
+      #       readOnly: true
+      #       mountPath: "/etc/secrets"
+      #   ports:
+      #   - containerPort: 80
+      #     containerPort: 443
+      # volumes:
+      # - name: ssl-keys
+      #   secret:
+      #     secretName: wattsfamily
 --- 
 # Service
 # LoadBalancer service works with cloud K8s or on MicroK8s if MetalLB is enabled
@@ -63,8 +103,12 @@ spec:
     protocol: TCP
     port: 81
     targetPort: 8080
-  selector:
-    app: nigelpoulton-web
+  # - name: https
+  #   protocol: TCP
+  #   port: 443
+  #   targetPort: 443
+  # selector:
+  #   app: nigelpoulton-web
 
 # Nodeport service for internal only
 # kind: Service

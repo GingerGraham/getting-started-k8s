@@ -1,0 +1,162 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: prom-grafana
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: prom-grafana-ubuntu
+  namespace: prom-grafana
+  labels:
+    app: prom-grafana-ubuntu
+spec:
+  selector:
+    matchLabels:
+      app: ubuntu
+  replicas: 1
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: ubuntu
+    spec:
+      terminationGracePeriodSeconds: 2
+      containers:
+      - name: ubuntu
+        image: ubuntu:bionic
+        command: ["/bin/sleep", "3650d"]
+        # command: ["/bin/bash"]
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "1"
+        ports:
+        - containerPort: 9100
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: prom-grafana-prom
+  namespace: prom-grafana
+  labels:
+    app: prom-grafana-prom
+spec:
+  selector:
+    matchLabels:
+      app: prom
+  replicas: 1
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: prom
+    spec:
+      terminationGracePeriodSeconds: 2
+      containers:
+      - name: prometheus
+        image: prom/prometheus:latest
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        ports:
+        - containerPort: 9090
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: prom-grafana-grafana
+  namespace: prom-grafana
+  labels:
+    app: prom-grafana-grafana
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  replicas: 1
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      terminationGracePeriodSeconds: 2
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        ports:
+        - containerPort: 3000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ubuntumetrics
+  namespace: prom-grafana
+spec:
+  type: NodePort
+  selector:
+    app: ubuntu
+  ports:
+  - port: 9100
+    targetPort: 9100
+    nodePort: 30100
+    protocol: TCP
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: prometheusweb
+  namespace: prom-grafana
+spec:
+  type: NodePort
+  selector:
+    app: prom
+  ports:
+  - port: 9090
+    targetPort: 9090
+    nodePort: 30090
+    protocol: TCP
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: grafanaweb
+  namespace: prom-grafana
+spec:
+  type: NodePort
+  selector:
+    app: grafana
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 30000
+    protocol: TCP
